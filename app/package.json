@@ -1,0 +1,48 @@
+{
+  "name": "deebee",
+  "version": "0.1.0",
+  "description": "Distance Buddy desktop overlay",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "pack": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.0.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "@serialport/parser-readline": "^12.0.0",
+    "active-win": "^8.2.1",
+    "serialport": "^12.0.0"
+  },
+  "build": {
+    "appId": "com.deebee.distance-buddy",
+    "productName": "DeeBee",
+    "asar": false,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../Audio",
+        "to": "Audio"
+      }
+    ],
+    "win": {
+      "target": "portable"
+    },
+    "portable": {
+      "artifactName": "DeeBee.exe"
+    }
+  }
+}

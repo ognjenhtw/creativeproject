@@ -1,0 +1,446 @@
+/* bundled Fredoka — no internet needed */
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 500;
+  src: url('fonts/fredoka-500.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 600;
+  src: url('fonts/fredoka-600.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 700;
+  src: url('fonts/fredoka-700.ttf') format('truetype');
+  font-display: swap;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  color: #fff;
+}
+
+/* ── dev HUD ─────────────────────────────────────────── */
+#hud {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 26px 14px 8px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  line-height: 1.5;
+  pointer-events: none;
+  max-width: 360px;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+body.hud-hidden #hud { opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(8px); }
+
+.hud-controls {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 4px;
+  pointer-events: auto;
+}
+.hud-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  transition: background 120ms ease, transform 120ms ease, color 120ms ease;
+}
+.hud-btn:hover  { background: rgba(255, 255, 255, 0.22); color: #fff; transform: scale(1.1); }
+.hud-btn:active { transform: scale(0.95); }
+.hud-btn svg    { width: 11px; height: 11px; }
+.hud-btn .ico-off { display: none; }
+.hud-btn.muted .ico-on  { display: none; }
+.hud-btn.muted .ico-off { display: block; color: rgba(255, 105, 180, 0.95); }
+
+#quit-btn { background: rgba(255, 105, 180, 0.85); color: #fff; }
+#quit-btn:hover { background: rgba(255, 80, 160, 1); }
+
+#show-hud-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transition: background 120ms ease, transform 120ms ease;
+}
+#show-hud-btn:hover  { background: rgba(0, 0, 0, 0.8); color: #fff; transform: scale(1.08); }
+body.hud-hidden #show-hud-btn { display: flex; }
+.mood-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  background: rgba(255, 105, 180, 0.25);
+  color: rgba(255, 200, 230, 0.95);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ── hot zones: 2 px line at the very top ────────────── */
+.hot-zone {
+  position: fixed;
+  top: 0;
+  height: 2px;
+  pointer-events: none;
+}
+body.dev .hot-zone {
+  background: rgba(255, 105, 180, 0.95);
+}
+
+/* ── cat body (dangles during pomodoro break) ────────── */
+/* Tunables — adjust these to nail tail position relative to body.
+   All sizes are % of the body container so they scale with screen height. */
+:root {
+  --tail-left:  44%;   /* horizontal offset from body container left edge */
+  --tail-top:   74%;   /* vertical offset — tail hangs below the legs */
+  --tail-width: 28%;   /* tail width relative to body container width */
+  --tail-wiggle: 14deg; /* how far the tail swings on click */
+}
+
+.cat-body {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  height: 70vh;
+  aspect-ratio: 1247 / 1938;     /* matches cat-body.svg viewBox */
+  width: auto;
+  pointer-events: none;          /* body itself is decorative */
+  transform: translate(-50%, -135%);
+  transition: transform 760ms cubic-bezier(0.34, 1.05, 0.4, 1);
+  z-index: 1;
+  will-change: transform;
+}
+.cat-body.dropped {
+  /* shift slightly above viewport so the flat top edge never shows during sway */
+  transform: translate(-50%, -3vh);
+}
+.cat-body-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-origin: 50% 0%;
+}
+.cat-body.dropped .cat-body-inner {
+  animation: cat-sway 4.8s ease-in-out infinite;
+}
+@keyframes cat-sway {
+  0%, 100% { transform: rotate(-1.4deg); }
+  50%      { transform: rotate( 1.4deg); }
+}
+.cat-body-shape {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: top center;
+  position: relative;
+  z-index: 2;                    /* body in front of tail */
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* Tail: layered BEHIND the body, hangs straight down. */
+.cat-tail {
+  position: absolute;
+  left: var(--tail-left);
+  top:  var(--tail-top);
+  width: var(--tail-width);
+  aspect-ratio: 454 / 1032;      /* matches cat-tail.svg viewBox */
+  height: auto;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  pointer-events: none;          /* enabled only when body is dropped */
+  outline: none;
+  z-index: 1;                    /* behind body */
+  transform-origin: 50% 0%;      /* pivot from the top (attached end) */
+  transform: rotate(0deg);
+  transition: transform 180ms cubic-bezier(0.34, 1.4, 0.55, 1);
+}
+.cat-body.dropped .cat-tail { pointer-events: auto; }
+.cat-tail:hover  { transform: rotate(calc(var(--tail-wiggle) * 0.3)); }
+.cat-tail:active { transform: rotate(calc(var(--tail-wiggle) * -0.5)); }
+.cat-tail.bounce { animation: tail-wiggle 520ms cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+@keyframes tail-wiggle {
+  0%   { transform: rotate(0deg); }
+  20%  { transform: rotate(calc(var(--tail-wiggle) * -1)); }
+  45%  { transform: rotate(calc(var(--tail-wiggle) *  0.85)); }
+  70%  { transform: rotate(calc(var(--tail-wiggle) * -0.55)); }
+  88%  { transform: rotate(calc(var(--tail-wiggle) *  0.3)); }
+  100% { transform: rotate(0deg); }
+}
+.cat-tail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* ── dropdown panel base ─────────────────────────────── */
+.panel {
+  position: fixed;
+  top: 0;
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: contain;
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              opacity   180ms ease;
+  z-index: 10;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
+}
+.panel.open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── mute button (generic, positioned per panel) ─────── */
+.mute-btn {
+  position: absolute;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.55);
+  transition: color 120ms ease, transform 120ms ease;
+  z-index: 5;
+  pointer-events: auto;
+}
+.mute-btn:hover  { color: #000; transform: scale(1.12); }
+.mute-btn svg    { width: 14px; height: 14px; }
+.mute-btn .ico-off { display: none; }
+.mute-btn.muted .ico-on  { display: none; }
+.mute-btn.muted .ico-off { display: block; color: #d96a6a; }
+
+/* ───────────────────────────────────────────────────────
+   Pomodoro panel — cat-food can
+   ─────────────────────────────────────────────────────── */
+#pomodoro-panel {
+  right: 50%;
+  width: 340px;
+  height: 320px;
+  background-image: url('lines-and-paws (1).svg');
+}
+.mute-btn-can {
+  /* sits ON the red pull-tab circle in the lid */
+  top: 25px;
+  left: 285px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #fff;
+}
+.mute-btn-can:hover { color: #fff; transform: scale(1.18); }
+.mute-btn-can svg   { width: 11px; height: 11px; }
+.pomo-time {
+  position: absolute;
+  top: 93px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #1a1a1a;
+  line-height: 1;
+}
+.pomo-phase {
+  position: absolute;
+  top: 168px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 14px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #d96a6a;
+  border: 1.5px solid #d96a6a;
+  border-radius: 6px;
+  background: transparent;
+}
+.pomo-controls {
+  /* sits exactly between the two SVG divider lines (y=209 and y=240) */
+  position: absolute;
+  top: 213px;
+  left: 24px;
+  right: 24px;
+  height: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  gap: 0;
+}
+.pomo-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #1a1a1a;
+  padding: 0;
+  line-height: 1;
+  transition: transform 90ms ease, color 90ms ease;
+}
+.pomo-btn:hover   { color: #d96a6a; }
+.pomo-btn:active  { transform: scale(0.94); }
+.pomo-btn-primary { color: #1a1a1a; }    /* central button — same look */
+
+.pomo-settings {
+  /* sits directly below the second SVG divider line (y=240) */
+  position: absolute;
+  top: 246px;
+  left: 24px;
+  right: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  text-align: center;
+}
+.pomo-settings label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.pomo-settings label > span {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: #b07474;
+}
+.pomo-settings input {
+  width: 44px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1.5px solid #d96a6a;
+  border-radius: 6px;
+  text-align: center;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  outline: none;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.pomo-settings input::-webkit-outer-spin-button,
+.pomo-settings input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.pomo-settings input:focus {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* ───────────────────────────────────────────────────────
+   Notes panel — fish
+   ─────────────────────────────────────────────────────── */
+#notes-panel {
+  left: 50%;
+  width: 340px;
+  height: 280px;
+}
+.fish-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.mute-btn-fish {
+  /* sits ON the red cheek circle below the fish's eye (right side now) */
+  top: 161px;
+  left: 301px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #fff;
+}
+.mute-btn-fish:hover { color: #fff; transform: scale(1.18); }
+.mute-btn-fish svg   { width: 11px; height: 11px; }
+#notes-text {
+  /* fits inside the cream writing oval of fish-leftside */
+  position: absolute;
+  top: 76px;
+  left: 86px;
+  width: 178px;
+  height: 152px;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  color: #1a1a1a;
+  font-family: 'Fredoka', system-ui, sans-serif !important;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+#notes-text::placeholder {
+  color: rgba(0, 0, 0, 0.3);
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
