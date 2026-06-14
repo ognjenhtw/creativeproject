@@ -43,7 +43,16 @@ That's it.
 
 ---
 
-## Mac users: two one-time clicks you'll see
+## Mac users: one-time setup steps you may see
+
+### Permission error: "could not be executed"
+
+If you get *"The file `Start DeeBee (Mac).command` could not be executed because you do not have appropriate access privileges,"* the launcher's executable flag was stripped by the zip tool. Fix in 30 seconds:
+
+1. Open **Terminal** (⌘+Space → type "Terminal" → Enter).
+2. Type `chmod +x ` followed by a single space, then **drag the `Start DeeBee (Mac).command` file from Finder into the Terminal window** (this auto-pastes its path).
+3. Press **Enter**. No output = success.
+4. Double-click the `.command` file in Finder normally. Done forever.
 
 ### Gatekeeper warning the first time
 
