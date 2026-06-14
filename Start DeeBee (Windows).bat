@@ -7,8 +7,6 @@ where node >nul 2>nul
 if errorlevel 1 goto :no_node
 
 if not exist "node_modules" goto :first_install
-REM Check that Electron's binary actually downloaded (it's a separate post-install step
-REM that can silently fail on flaky networks or with antivirus blocking).
 if not exist "node_modules\electron\dist\electron.exe" goto :repair_electron
 goto :launch
 
@@ -23,13 +21,20 @@ goto :launch
 
 :repair_electron
 echo.
-echo Electron binary is missing - repairing the install (1 minute)...
-echo (This usually means the first download was blocked by antivirus or a flaky network.)
+echo Electron binary is missing - repairing the install...
 echo.
 if exist "node_modules\electron" rmdir /s /q "node_modules\electron"
-call npm install electron --no-save
+call npm install electron@33.2.0 --no-save
+if exist "node_modules\electron\dist\electron.exe" goto :launch
+
+echo.
+echo npm couldn't download Electron (commonly due to antivirus). Trying direct download (~90 MB)...
+echo.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; try { Invoke-WebRequest -Uri 'https://github.com/electron/electron/releases/download/v33.2.0/electron-v33.2.0-win32-x64.zip' -OutFile 'electron-binary.zip' -UseBasicParsing; Expand-Archive -Path 'electron-binary.zip' -DestinationPath '.\node_modules\electron\dist' -Force; 'electron.exe' | Out-File -FilePath '.\node_modules\electron\path.txt' -Encoding ASCII -NoNewline; Remove-Item 'electron-binary.zip' -Force; exit 0 } catch { Write-Host $_.Exception.Message; exit 1 }"
 if errorlevel 1 goto :electron_repair_failed
 if not exist "node_modules\electron\dist\electron.exe" goto :electron_repair_failed
+echo Repaired successfully.
+echo.
 
 :launch
 echo.
@@ -61,11 +66,13 @@ exit /b 1
 
 :electron_repair_failed
 echo.
-echo Electron could not be downloaded.
-echo Likely cause: Windows Defender / antivirus is blocking it.
+echo Could not download the Electron binary, even directly from GitHub.
+echo This means either:
+echo   1) No internet connection
+echo   2) Antivirus is blocking the download (try disabling real-time protection)
+echo   3) A firewall or proxy is blocking github.com
 echo.
-echo Fix: temporarily disable real-time virus protection,
-echo      then double-click this launcher again. You can re-enable after.
+echo Once you fix the connection, double-click this launcher again.
 echo.
 pause
 exit /b 1
